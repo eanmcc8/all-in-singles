@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BabelLocal</title>
+<style>
+/* Rangrez · china-02 · 米紙 MIZHI — hand-scroll mulberry paper, calligraphy */
+:root {
+  --body: #f5ecd6;
+  --panel: #fdf6e2;
+  --panel-soft: #fafaf3;
+  --row: #ece2c4;
+  --line: #d8c8a0;
+  --ink: #2a1a0a;
+  --ink-mid: #5a3a14;
+  --ink-soft: #8a6a32;
+  --ink-mute: #a8895a;
+  --brand: #b8281a;
+  --brand-soft: #fde6c4;
+  --act: #1f3360;
+  --act-hover: #15264a;
+  --act-tint: #f0e6c8;
+  --ok: #5a6a1f;
+  --ok-soft: #e8efe0;
+  --warn: #c08018;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--body);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px;
+}
+
+.app { width: 100%; max-width: 960px; }
+
+/* ── Header ── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+h1 { font-size: 1.5rem; font-weight: 700; color: var(--ink); }
+.badge {
+  font-size: 0.75rem;
+  background: var(--ok-soft);
+  color: #3a4a18;
+  border: 1px solid var(--ok);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.4s, border-color 0.4s, color 0.4s;
+}
+.badge.loading {
+  background: var(--brand-soft);
+  border-color: var(--warn);
+  color: #744210;
+}
+.badge-spinner {
+  width: 10px; height: 10px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.badge-icon { font-style: normal; }
+
+/* ── Card ── */
+.card {
+  background: var(--panel);
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(42,26,10,0.08);
+  overflow: hidden;
+}
+
+/* ── Language bar ── */
+.lang-bar {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--row);
+  gap: 8px;
+}
+/* ── Searchable language picker ── */
+.lang-picker { flex: 1; position: relative; }
+
+.picker-btn {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.picker-btn:focus, .picker-btn.open {
+  border-color: var(--act);
+  box-shadow: 0 0 0 3px rgba(31,51,96,0.18);
+}
+.picker-arrow { color: var(--ink-mute); font-size: 0.65rem; margin-left: 6px; flex-shrink: 0; }
+
+.picker-dropdown {
+  display: none;
+  flex-direction: column;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(42,26,10,0.14);
+  z-index: 200;
+  max-height: 280px;
+  overflow: hidden;
+}
+.picker-dropdown.open { display: flex; }
+
+.picker-search {
+  padding: 10px 12px;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.88rem;
+  outline: none;
+  width: 100%;
+  border-radius: 10px 10px 0 0;
+  font-family: inherit;
+}
+.picker-list { overflow-y: auto; flex: 1; }
+
+.picker-group-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-mute);
+  padding: 8px 12px 3px;
+}
+.picker-option {
+  display: block;
+  width: 100%;
+  padding: 7px 12px;
+  font-size: 0.88rem;
+  color: var(--ink);
+  cursor: pointer;
+  border: none;
+  background: none;
+  text-align: left;
+  font-family: inherit;
+}
+.picker-option:hover  { background: var(--body); }
+.picker-option.active { background: var(--act-tint); color: var(--act); font-weight: 600; }
+.picker-option.kb     { background: var(--body); outline: 2px solid var(--act); outline-offset: -2px; }
+.swap-btn {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: background 0.15s;
+  flex-shrink: 0;
+  color: var(--ink-mid);
+}
+.swap-btn:hover { background: var(--row); }
+
+/* ── Text panels ── */
+.panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 260px;
+}
+.panel { display: flex; flex-direction: column; }
+.panel:first-child { border-right: 1px solid var(--line); }
+
+textarea, .output {
+  flex: 1;
+  padding: 20px;
+  font-size: 1rem;
+  line-height: 1.6;
+  font-family: inherit;
+  min-height: 220px;
+}
+textarea {
+  border: none;
+  outline: none;
+  resize: none;
+  color: var(--ink);
+}
+textarea::placeholder { color: var(--ink-mute); }
+
+.output {
+  background: var(--panel-soft);
+  color: var(--ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-y: auto;
+}
+.output.placeholder { color: var(--ink-mute); font-style: italic; }
+.output.streaming { color: var(--ink-mid); }
+
+/* ── Panel footer ── */
+.panel-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-top: 1px solid var(--line);
+  background: var(--row);
+}
+.char-count { font-size: 0.75rem; color: var(--ink-mute); }
+.char-count.warn { color: var(--brand); }
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+.icon-btn:hover { background: var(--line); color: var(--ink); }
+.icon-btn:disabled { opacity: 0.4; cursor: default; }
+
+/* ── Action bar ── */
+.action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 1px solid var(--line);
+  background: var(--row);
+}
+.auto-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.translate-btn {
+  background: var(--act);
+  color: var(--panel);
+  border: none;
+  border-radius: 8px;
+  padding: 9px 22px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+.translate-btn:hover:not(:disabled) { background: var(--act-hover); }
+.translate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Progress panel ── */
+.progress-card {
+  margin-top: 12px;
+  background: var(--panel);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(42,26,10,0.07);
+  padding: 16px;
+  display: none;
+}
+.progress-card.visible { display: block; }
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--ink-mid);
+  margin-bottom: 8px;
+}
+.progress-track {
+  background: var(--line);
+  border-radius: 8px;
+  height: 6px;
+  overflow: hidden;
+}
+.progress-fill {
+  background: linear-gradient(90deg, var(--act), var(--brand));
+  height: 100%;
+  width: 0%;
+  border-radius: 8px;
+  transition: width 0.3s ease;
+}
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--ink-mute);
+  display: inline-block;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+.status-dot.ready { background: var(--ok); }
+.status-dot.loading { background: var(--warn); animation: pulse 1s infinite; }
+.status-dot.error { background: var(--brand); }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.35; } }
+
+.status-text {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+.model-tag {
+  font-size: 0.7rem;
+  color: var(--ink-mute);
+}
+
+/* ── Transliteration ── */
+.translit-section {
+  padding: 10px 20px 14px;
+  border-top: 1px dashed var(--line);
+  background: var(--panel-soft);
+  display: none;
+}
+.translit-section.visible { display: block; }
+.translit-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-mute);
+  margin-bottom: 6px;
+}
+.translit-text {
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  font-style: italic;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .panels { grid-template-columns: 1fr; }
+  .panel:first-child { border-right: none; border-bottom: 1px solid var(--line); }
+  h1 { font-size: 1.2rem; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>🌍 BabelLocal</h1>
+    <span class="badge loading" id="badge">
+      <span class="badge-spinner" id="badgeSpinner"></span>
+      <span id="badgeText">Loading model…</span>
+    </span>
+  </header>
+
+  <div class="card">
+    <!-- Language selector bar -->
+    <div class="lang-bar">
+      <div class="lang-picker" id="srcLangWrap"></div>
+      <button class="swap-btn" id="swapBtn" title="Swap languages">⇄</button>
+      <div class="lang-picker" id="tgtLangWrap"></div>
+    </div>
+
+    <!-- Source / target panels -->
+    <div class="panels">
+      <div class="panel">
+        <textarea id="input" placeholder="Enter text to translate…" maxlength="2000"></textarea>
+        <div class="translit-section" id="srcTranslitSection">
+          <div class="translit-label">Romanization</div>
+          <div class="translit-text" id="srcTranslitText"></div>
+        </div>
+        <div class="panel-footer">
+          <span class="char-count" id="charCount">0 / 2000</span>
+          <button class="icon-btn" id="clearBtn">✕ Clear</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="output placeholder" id="output">Translation will appear here…</div>
+        <div class="translit-section" id="translitSection">
+          <div class="translit-label">Romanization</div>
+          <div class="translit-text" id="translitText"></div>
+        </div>
+        <div class="panel-footer">
+          <span></span>
+          <button class="icon-btn" id="copyBtn" disabled>⎘ Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="action-bar">
+      <label class="auto-label">
+        <input type="checkbox" id="autoTranslate" checked>
+        Auto-translate
+      </label>
+      <button class="translate-btn" id="translateBtn" disabled>Loading model…</button>
+    </div>
+  </div>
+
+  <!-- Progress / status -->
+  <div class="progress-card visible" id="progressCard">
+    <div class="progress-header">
+      <span id="progressLabel">Initialising…</span>
+      <span id="progressPct"></span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="status-row">
+      <div class="status-text">
+        <span class="status-dot loading" id="statusDot"></span>
+        <span id="statusText">Starting worker…</span>
+      </div>
+      <span class="model-tag">NLLB-200-distilled-600M · 55 languages · cached after first load</span>
+    </div>
+  </div>
+
+</div>
+
+<a href="https://github.com/NakliTechie/BabelLocal"
+   target="_blank"
+   rel="noopener"
+   style="position:fixed;bottom:14px;right:18px;font-size:0.7rem;color:var(--ink-mute);text-decoration:none;letter-spacing:0.01em;opacity:0.7;transition:opacity 0.2s;"
+   onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
+  ↗ github
+</a>
+
+<script type="module">
+import anyAscii from 'https://esm.sh/any-ascii';
+window.__anyAscii = anyAscii;
+document.dispatchEvent(new CustomEvent('anyascii-ready'));
+</script>
+
+<script>
+// ─── Language table (NLLB-200 BCP-47 codes) ──────────────────────────────────
+const LANGUAGES = [
+  // European – Western
+  { code: 'eng_Latn', name: 'English',                region: 'European' },
+  { code: 'fra_Latn', name: 'French',                 region: 'European' },
+  { code: 'spa_Latn', name: 'Spanish',                region: 'European' },
+  { code: 'por_Latn', name: 'Portuguese',             region: 'European' },
+  { code: 'ita_Latn', name: 'Italian',                region: 'European' },
+  { code: 'deu_Latn', name: 'German',                 region: 'European' },
+  { code: 'nld_Latn', name: 'Dutch',                  region: 'European' },
+  { code: 'swe_Latn', name: 'Swedish',                region: 'European' },
+  { code: 'dan_Latn', name: 'Danish',                 region: 'European' },
+  { code: 'nob_Latn', name: 'Norwegian',              region: 'European' },
+  { code: 'fin_Latn', name: 'Finnish',                region: 'European' },
+  { code: 'pol_Latn', name: 'Polish',                 region: 'European' },
+  { code: 'ces_Latn', name: 'Czech',                  region: 'European' },
+  { code: 'slk_Latn', name: 'Slovak',                 region: 'European' },
+  { code: 'hun_Latn', name: 'Hungarian',              region: 'European' },
+  { code: 'ron_Latn', name: 'Romanian',               region: 'European' },
+  { code: 'cat_Latn', name: 'Catalan',                region: 'European' },
+  { code: 'ell_Grek', name: 'Greek',                  region: 'European' },
+  // European – Eastern / Cyrillic
+  { code: 'rus_Cyrl', name: 'Russian',                region: 'Eastern European' },
+  { code: 'ukr_Cyrl', name: 'Ukrainian',              region: 'Eastern European' },
+  { code: 'bul_Cyrl', name: 'Bulgarian',              region: 'Eastern European' },
+  { code: 'bel_Cyrl', name: 'Belarusian',             region: 'Eastern European' },
+  { code: 'srp_Cyrl', name: 'Serbian',                region: 'Eastern European' },
+  { code: 'hrv_Latn', name: 'Croatian',               region: 'Eastern European' },
+  // Middle Eastern
+  { code: 'arb_Arab', name: 'Arabic',                 region: 'Middle Eastern' },
+  { code: 'heb_Hebr', name: 'Hebrew',                 region: 'Middle Eastern' },
+  { code: 'pes_Arab', name: 'Persian (Farsi)',         region: 'Middle Eastern' },
+  { code: 'tur_Latn', name: 'Turkish',                region: 'Middle Eastern' },
+  // Indian
+  { code: 'hin_Deva', name: 'Hindi',                  region: 'Indian' },
+  { code: 'ben_Beng', name: 'Bengali',                region: 'Indian' },
+  { code: 'tam_Taml', name: 'Tamil',                  region: 'Indian' },
+  { code: 'tel_Telu', name: 'Telugu',                 region: 'Indian' },
+  { code: 'kan_Knda', name: 'Kannada',                region: 'Indian' },
+  { code: 'mal_Mlym', name: 'Malayalam',              region: 'Indian' },
+  { code: 'guj_Gujr', name: 'Gujarati',               region: 'Indian' },
+  { code: 'mar_Deva', name: 'Marathi',                region: 'Indian' },
+  { code: 'pan_Guru', name: 'Punjabi',                region: 'Indian' },
+  { code: 'urd_Arab', name: 'Urdu',                   region: 'Indian' },
+  { code: 'ory_Orya', name: 'Odia',                   region: 'Indian' },
+  { code: 'asm_Beng', name: 'Assamese',               region: 'Indian' },
+  // East Asian & South-East Asian
+  { code: 'zho_Hans', name: 'Chinese (Simplified)',   region: 'East Asian' },
+  { code: 'zho_Hant', name: 'Chinese (Traditional)', region: 'East Asian' },
+  { code: 'jpn_Jpan', name: 'Japanese',               region: 'East Asian' },
+  { code: 'kor_Hang', name: 'Korean',                 region: 'East Asian' },
+  { code: 'vie_Latn', name: 'Vietnamese',             region: 'East Asian' },
+  { code: 'tha_Thai', name: 'Thai',                   region: 'East Asian' },
+  { code: 'mya_Mymr', name: 'Burmese',                region: 'East Asian' },
+  { code: 'khm_Khmr', name: 'Khmer',                  region: 'East Asian' },
+  { code: 'ind_Latn', name: 'Indonesian',             region: 'East Asian' },
+  { code: 'zsm_Latn', name: 'Malay',                  region: 'East Asian' },
+  // African
+  { code: 'swh_Latn', name: 'Swahili',                region: 'African' },
+  { code: 'hau_Latn', name: 'Hausa',                  region: 'African' },
+  { code: 'yor_Latn', name: 'Yoruba',                 region: 'African' },
+  { code: 'amh_Ethi', name: 'Amharic',                region: 'African' },
+  { code: 'som_Latn', name: 'Somali',                 region: 'African' },
+  { code: 'zul_Latn', name: 'Zulu',                   region: 'African' },
+];
+
+// ─── Searchable language picker ──────────────────────────────────────────────
+class LangPicker {
+  constructor(wrapperId, defaultCode, onChangeFn) {
+    this.value    = defaultCode;
+    this.onChange = onChangeFn;
+    this.isOpen   = false;
+    this.wrapper  = document.getElementById(wrapperId);
+
+    this.wrapper.innerHTML = `
+      <button type="button" class="picker-btn">
+        <span class="picker-label">${this._nameFor(defaultCode)}</span>
+        <span class="picker-arrow">▾</span>
+      </button>
+      <div class="picker-dropdown">
+        <input class="picker-search" type="text" placeholder="Search language…" autocomplete="off" spellcheck="false">
+        <div class="picker-list"></div>
+      </div>`;
+
+    this.btn    = this.wrapper.querySelector('.picker-btn');
+    this.drop   = this.wrapper.querySelector('.picker-dropdown');
+    this.search = this.wrapper.querySelector('.picker-search');
+    this.list   = this.wrapper.querySelector('.picker-list');
+
+    this._renderList('');
+    this._bind();
+  }
+
+  _nameFor(code) { return LANGUAGES.find(l => l.code === code)?.name ?? code; }
+
+  _renderList(query) {
+    const q = query.toLowerCase().trim();
+    this.list.innerHTML = '';
+    const matches = q ? LANGUAGES.filter(l => l.name.toLowerCase().includes(q)) : null;
+    const regions = [...new Set(LANGUAGES.map(l => l.region))];
+
+    regions.forEach(region => {
+      const langs = (matches ?? LANGUAGES).filter(l => l.region === region);
+      if (!langs.length) return;
+      if (!q) {
+        const lbl = document.createElement('div');
+        lbl.className   = 'picker-group-label';
+        lbl.textContent = region;
+        this.list.appendChild(lbl);
+      }
+      langs.forEach(lang => {
+        const btn = document.createElement('button');
+        btn.type      = 'button';
+        btn.className = 'picker-option' + (lang.code === this.value ? ' active' : '');
+        btn.textContent  = lang.name;
+        btn.dataset.code = lang.code;
+        btn.addEventListener('mousedown', e => { e.preventDefault(); this._select(lang.code); });
+        this.list.appendChild(btn);
+      });
+    });
+  }
+
+  _select(code) {
+    this.value = code;
+    this.btn.querySelector('.picker-label').textContent = this._nameFor(code);
+    this._close();
+    this.onChange?.(code);
+  }
+
+  _open() {
+    this.isOpen = true;
+    this.drop.classList.add('open');
+    this.btn.classList.add('open');
+    this.search.value = '';
+    this._renderList('');
+    requestAnimationFrame(() => {
+      this.search.focus();
+      this.list.querySelector('.active')?.scrollIntoView({ block: 'nearest' });
+    });
+  }
+
+  _close() {
+    this.isOpen = false;
+    this.drop.classList.remove('open');
+    this.btn.classList.remove('open');
+  }
+
+  _options() { return [...this.list.querySelectorAll('.picker-option')]; }
+
+  _moveFocus(delta) {
+    const opts = this._options();
+    if (!opts.length) return;
+    const cur = this.list.querySelector('.kb');
+    let idx = cur ? opts.indexOf(cur) + delta : (delta > 0 ? 0 : opts.length - 1);
+    idx = Math.max(0, Math.min(opts.length - 1, idx));
+    cur?.classList.remove('kb');
+    opts[idx].classList.add('kb');
+    opts[idx].scrollIntoView({ block: 'nearest' });
+  }
+
+  _bind() {
+    this.btn.addEventListener('click', e => { e.stopPropagation(); this.isOpen ? this._close() : this._open(); });
+    this.search.addEventListener('input', () => { this._renderList(this.search.value); });
+    this.search.addEventListener('keydown', e => {
+      if (e.key === 'Escape')    { this._close(); }
+      else if (e.key === 'ArrowDown')  { e.preventDefault(); this._moveFocus(1); }
+      else if (e.key === 'ArrowUp')    { e.preventDefault(); this._moveFocus(-1); }
+      else if (e.key === 'Enter') {
+        e.preventDefault();
+        const focused = this.list.querySelector('.kb');
+        if (focused) this._select(focused.dataset.code);
+      }
+    });
+    document.addEventListener('click', e => { if (!this.wrapper.contains(e.target)) this._close(); });
+  }
+
+  getValue()       { return this.value; }
+  setValue(code)   { this.value = code; this.btn.querySelector('.picker-label').textContent = this._nameFor(code); }
+}
+
+// ─── Initialise pickers ───────────────────────────────────────────────────────
+const pickers = {
+  src: new LangPicker('srcLangWrap', 'eng_Latn', () => { updateSrcTransliteration(); if ($input.value.trim() && modelReady) doTranslate(); }),
+  tgt: new LangPicker('tgtLangWrap', 'hin_Deva', () => { updateTransliteration(); if ($input.value.trim() && modelReady) doTranslate(); }),
+};
+
+// ─── Web Worker ───────────────────────────────────────────────────────────────
+const WORKER_SRC = `
+import { pipeline, env, TextStreamer } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3/+esm';
+
+// Try local models first; fall back to remote download
+env.allowLocalModels  = true;
+env.localModelPath    = '/models/';
+env.allowRemoteModels = true;
+
+const MODEL_ID = 'Xenova/nllb-200-distilled-600M';
+let translator = null;
+
+async function load() {
+  translator = await pipeline('translation', MODEL_ID, {
+    dtype: 'q8',
+    progress_callback: p => self.postMessage({ type: 'progress', data: p }),
+  });
+}
+
+self.onmessage = async ({ data }) => {
+  if (data.type === 'load') {
+    try {
+      await load();
+      self.postMessage({ type: 'ready' });
+    } catch (e) {
+      self.postMessage({ type: 'error', message: e.message });
+    }
+  }
+
+  if (data.type === 'translate') {
+    if (!translator) {
+      self.postMessage({ type: 'error', message: 'Model not loaded yet.' });
+      return;
+    }
+    try {
+      self.postMessage({ type: 'translating' });
+
+      // Seq2seq models stream token-by-token through the decoder
+      const streamer = new TextStreamer(translator.tokenizer, {
+        skip_prompt: true,
+        skip_special_tokens: true,
+        callback_function: token => self.postMessage({ type: 'token', token }),
+      });
+
+      const out = await translator(data.text, {
+        src_lang: data.srcLang,
+        tgt_lang: data.tgtLang,
+        max_new_tokens: 512,
+        streamer,
+      });
+
+      self.postMessage({ type: 'done', result: out[0].translation_text });
+    } catch (e) {
+      self.postMessage({ type: 'error', message: e.message });
+    }
+  }
+};
+`;
+
+const worker = new Worker(
+  URL.createObjectURL(new Blob([WORKER_SRC], { type: 'application/javascript' })),
+  { type: 'module' }
+);
+
+// ─── DOM refs ─────────────────────────────────────────────────────────────────
+const $input        = document.getElementById('input');
+const $output       = document.getElementById('output');
+const $translateBtn = document.getElementById('translateBtn');
+const $charCount    = document.getElementById('charCount');
+const $copyBtn      = document.getElementById('copyBtn');
+const $progressCard = document.getElementById('progressCard');
+const $progressFill = document.getElementById('progressFill');
+const $progressLabel= document.getElementById('progressLabel');
+const $progressPct  = document.getElementById('progressPct');
+const $statusDot       = document.getElementById('statusDot');
+const $statusText      = document.getElementById('statusText');
+const $srcTranslitSection = document.getElementById('srcTranslitSection');
+const $srcTranslitText    = document.getElementById('srcTranslitText');
+const $translitSection = document.getElementById('translitSection');
+const $translitText    = document.getElementById('translitText');
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let modelReady   = false;
+let translating  = false;
+let outputText   = '';
+let debounce     = null;
+
+// ─── AnyAscii (transliteration) ──────────────────────────────────────────────
+let anyAscii = null;
+document.addEventListener('anyascii-ready', () => {
+  anyAscii = window.__anyAscii;
+  updateSrcTransliteration();
+  updateTransliteration();
+});
+
+// ─── Worker message handler ───────────────────────────────────────────────────
+worker.onmessage = ({ data }) => {
+  switch (data.type) {
+
+    case 'progress': {
+      const p = data.data;
+      if (p.status === 'downloading' || p.status === 'loading') {
+        const pct = p.total ? Math.round((p.loaded / p.total) * 100) : 0;
+        $progressFill.style.width = pct + '%';
+        $progressPct.textContent  = pct + '%';
+        const file = p.file ? p.file.split('/').pop() : 'files';
+        $progressLabel.textContent =
+          (p.status === 'downloading' ? 'Downloading ' : 'Loading ') + file + '…';
+      }
+      setStatus('loading', p.status === 'downloading'
+        ? 'Downloading model (one-time, then cached)…'
+        : 'Loading into memory…');
+      break;
+    }
+
+    case 'ready':
+      modelReady = true;
+      $translateBtn.disabled    = false;
+      $translateBtn.textContent = 'Translate';
+      $progressFill.style.width = '100%';
+      setStatus('ready', 'Model ready · running in your browser');
+      setTimeout(() => $progressCard.classList.remove('visible'), 2500);
+      // Update badge → ready state
+      document.getElementById('badge').classList.remove('loading');
+      document.getElementById('badgeSpinner').style.display = 'none';
+      document.getElementById('badgeText').textContent = '⚡ Runs locally · No data sent';
+      break;
+
+    case 'translating':
+      translating = true;
+      outputText  = '';
+      renderOutput('', true);
+      $translateBtn.disabled    = true;
+      $translateBtn.textContent = 'Translating…';
+      break;
+
+    case 'token':
+      outputText += data.token;
+      renderOutput(outputText, true);
+      break;
+
+    case 'done':
+      translating = false;
+      outputText  = data.result;
+      renderOutput(outputText, false);
+      $translateBtn.disabled    = false;
+      $translateBtn.textContent = 'Translate';
+      $copyBtn.disabled = false;
+      break;
+
+    case 'error':
+      translating = false;
+      setStatus('error', 'Error: ' + data.message);
+      renderOutput('⚠️ ' + data.message, false);
+      $translateBtn.disabled    = !modelReady;
+      $translateBtn.textContent = modelReady ? 'Translate' : 'Error loading model';
+      break;
+  }
+};
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function setStatus(state, text) {
+  $statusDot.className  = 'status-dot ' + state;
+  $statusText.textContent = text;
+}
+
+function needsTranslit(langCode) {
+  return !langCode.endsWith('_Latn');
+}
+
+function updateSrcTransliteration() {
+  const srcLang = pickers.src.getValue();
+  const inputText = $input.value.trim();
+  if (anyAscii && inputText && needsTranslit(srcLang)) {
+    $srcTranslitText.textContent = anyAscii(inputText);
+    $srcTranslitSection.classList.add('visible');
+  } else {
+    $srcTranslitSection.classList.remove('visible');
+  }
+}
+
+function updateTransliteration() {
+  const tgtLang = pickers.tgt.getValue();
+  if (anyAscii && outputText && needsTranslit(tgtLang)) {
+    $translitText.textContent = anyAscii(outputText);
+    $translitSection.classList.add('visible');
+  } else {
+    $translitSection.classList.remove('visible');
+  }
+}
+
+function renderOutput(text, streaming) {
+  if (!text) {
+    $output.textContent = 'Translation will appear here…';
+    $output.className   = 'output placeholder';
+    $copyBtn.disabled   = true;
+    $translitSection.classList.remove('visible');
+  } else {
+    $output.textContent = text;
+    $output.className   = streaming ? 'output streaming' : 'output';
+    if (!streaming) updateTransliteration();
+  }
+}
+
+function doTranslate() {
+  const text    = $input.value.trim();
+  const srcLang = pickers.src.getValue();
+  const tgtLang = pickers.tgt.getValue();
+
+  if (!text || !modelReady || translating) return;
+
+  if (srcLang === tgtLang) {
+    renderOutput(text, false);
+    return;
+  }
+
+  worker.postMessage({ type: 'translate', text, srcLang, tgtLang });
+}
+
+// ─── Event listeners ─────────────────────────────────────────────────────────
+$input.addEventListener('input', () => {
+  const len = $input.value.length;
+  $charCount.textContent = `${len} / 2000`;
+  $charCount.className   = 'char-count' + (len > 1800 ? ' warn' : '');
+
+  updateSrcTransliteration();
+
+  if (document.getElementById('autoTranslate').checked) {
+    clearTimeout(debounce);
+    debounce = setTimeout(doTranslate, 800);
+  }
+});
+
+$translateBtn.addEventListener('click', doTranslate);
+
+document.getElementById('swapBtn').addEventListener('click', () => {
+  const srcCode = pickers.src.getValue();
+  const tgtCode = pickers.tgt.getValue();
+  pickers.src.setValue(tgtCode);
+  pickers.tgt.setValue(srcCode);
+
+  const tmp = $input.value;
+  $input.value = outputText;
+  outputText   = tmp;
+  $charCount.textContent = `${$input.value.length} / 2000`;
+  renderOutput(outputText, false);
+  updateSrcTransliteration();
+  if ($input.value.trim()) doTranslate();
+});
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  $input.value = '';
+  outputText   = '';
+  $charCount.textContent = '0 / 2000';
+  renderOutput('', false);
+  $srcTranslitSection.classList.remove('visible');
+});
+
+$copyBtn.addEventListener('click', async () => {
+  if (!outputText) return;
+  await navigator.clipboard.writeText(outputText);
+  $copyBtn.textContent = '✓ Copied!';
+  setTimeout(() => { $copyBtn.textContent = '⎘ Copy'; }, 1500);
+});
+
+// (language-change re-translate is handled inside LangPicker's onChangeFn)
+
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+worker.postMessage({ type: 'load' });
+</script>
+<div style="position:fixed;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:16px;align-items:center;font-family:system-ui,-apple-system,sans-serif;font-size:12px;color:#667;background:rgba(255,255,255,0.9);padding:8px 16px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);z-index:10000"><a href="https://naklitechie.github.io/" style="color:#0366d6;text-decoration:none;font-weight:500" target="_blank" rel="noopener">⬅ More Projects</a><span style="color:#e1e4e8">|</span><a href="https://github.com/NakliTechie/BabelLocal" style="color:#0366d6;text-decoration:none;font-weight:500" target="_blank" rel="noopener">⌨ Source</a></div></body>
+</html>
