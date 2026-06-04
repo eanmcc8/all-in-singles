@@ -69,7 +69,6 @@
     font-weight: 600;
     margin-bottom: 10px;
     color: var(--primary-color);
-    align-items: center;
     text-align: center;
   }
 
@@ -88,6 +87,7 @@
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.2s;
+    align-self: center;
   }
 
   .load-content-btn:hover {
@@ -130,71 +130,71 @@
 <header>Stillloaded Tools</header>
 
 <div id="content-area">
-  <!-- Cards for pages -->
+  <!-- Cards for pages with buttons to open in new tab -->
   <div class="page-container">
     <div class="page-title">API Client</div>
     <div class="page-description"><strong>Description:</strong> This page provides an API client tool for testing and development.</div>
-    <button class="load-content-btn" data-page="api-client.html">Load Page Content</button>
+    <button class="load-content-btn" onclick="window.open('them/api-client.html', '_blank')">Open in New Tab</button>
   </div>
   <div class="page-container">
     <div class="page-title">Bookmarklets</div>
     <div class="page-description"><strong>Description:</strong> Here you'll find useful bookmarklets to enhance your browsing experience.</div>
-    <button class="load-content-btn" data-page="bookmarklets.html">Load Page Content</button>
+    <button class="load-content-btn" onclick="window.open('them/bookmarklets.html', '_blank')">Open in New Tab</button>
   </div>
   <div class="page-container">
     <div class="page-title">CORS Fetch</div>
     <div class="page-description"><strong>Description:</strong> An example demonstrating CORS fetch requests and handling.</div>
-    <button class="load-content-btn" data-page="cors-fetch.html">Load Page Content</button>
+    <button class="load-content-btn" onclick="window.open('them/cors-fetch.html', '_blank')">Open in New Tab</button>
   </div>
   <div class="page-container">
     <div class="page-title">Developer Tools</div>
     <div class="page-description"><strong>Description:</strong> Developer tools and resources for debugging and development.</div>
-    <button class="load-content-btn" data-page="dev-tools.html">Load Page Content</button>
+    <button class="load-content-btn" onclick="window.open('them/dev-tools.html', '_blank')">Open in New Tab</button>
   </div>
   <div class="page-container">
     <div class="page-title">File Sender</div>
     <div class="page-description"><strong>Description:</strong> Send files easily between devices with this feature.</div>
-    <button class="load-content-btn" data-page="file-sender.html">Load Page Content</button>
+    <button class="load-content-btn" onclick="window.open('them/file-sender.html', '_blank')">Open in New Tab</button>
   </div>
   <div class="page-container">
     <div class="page-title">Image Editor</div>
     <div class="page-description"><strong>Description:</strong> An online image editor supporting various editing features.</div>
-    <button class="load-content-btn" data-page="image-editor.html">Load Page Content</button>
+    <button class="load-content-btn" onclick="window.open('them/image-editor.html', '_blank')">Open in New Tab</button>
   </div>
   <div class="page-container">
     <div class="page-title">Linux Emulator</div>
     <div class="page-description"><strong>Description:</strong> Run a Linux emulation environment directly in your browser.</div>
-    <button class="load-content-btn" data-page="linux-emu.html">Load Page Content</button>
+    <button class="load-content-btn" onclick="window.open('them/linux-emu.html', '_blank')">Open in New Tab</button>
   </div>
   <div class="page-container">
     <div class="page-title">Repository Scanner</div>
     <div class="page-description"><strong>Description:</strong> Scan repositories for vulnerabilities or code analysis.</div>
-    <button class="load-content-btn" data-page="repo-scanner.html">Load Page Content</button>
+    <button class="load-content-btn" onclick="window.open('them/repo-scanner.html', '_blank')">Open in New Tab</button>
   </div>
   <div class="page-container">
     <div class="page-title">Site Analytics</div>
     <div class="page-description"><strong>Description:</strong> Tools for analyzing website traffic and performance.</div>
-    <button class="load-content-btn" data-page="site-analytics.html">Load Page Content</button>
+    <button class="load-content-btn" onclick="window.open('them/site-analytics.html', '_blank')">Open in New Tab</button>
   </div>
   <div class="page-container">
     <div class="page-title">Site Builder</div>
     <div class="page-description"><strong>Description:</strong> Build and customize your website with this builder.</div>
-    <button class="load-content-btn" data-page="site-builder.html">Load Page Content</button>
+    <button class="load-content-btn" onclick="window.open('them/site-builder.html', '_blank')">Open in New Tab</button>
   </div>
   <div class="page-container">
     <div class="page-title">Translator</div>
     <div class="page-description"><strong>Description:</strong> Translate text between multiple languages.</div>
-    <button class="load-content-btn" data-page="translator.html">Load Page Content</button>
+    <button class="load-content-btn" onclick="window.open('them/translator.html', '_blank')">Open in New Tab</button>
   </div>
   <div class="page-container">
     <div class="page-title">Unicode Characters</div>
     <div class="page-description"><strong>Description:</strong> Learn about Unicode characters and encoding.</div>
-    <button class="load-content-btn" data-page="unicode.html">Load Page Content</button>
+    <button class="load-content-btn" onclick="window.open('them/unicode.html', '_blank')">Open in New Tab</button>
   </div>
   <div class="page-container">
     <div class="page-title">Unicode JSON Data</div>
     <div class="page-description"><strong>Description:</strong> A JSON list of Unicode characters and their properties.</div>
-    <button class="load-content-btn" data-page="unicodes.json">Load Page Content</button>
+    <button class="load-content-btn" onclick="window.open('them/unicodes.json', '_blank')">Open in New Tab</button>
   </div>
 </div>
 
@@ -202,7 +202,7 @@
   <div id="page-header">
     <button id="back-btn">&larr; Back</button>
   </div>
-  <!-- Content will be loaded here -->
+  <!-- Content area is now static, no fetch needed -->
 </div>
 
 <script>
@@ -210,36 +210,13 @@
   const pageHeader = document.getElementById("page-header");
   const backBtn = document.getElementById("back-btn");
 
-  // Assign event listeners to buttons
-  document.querySelectorAll('.load-content-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const page = btn.getAttribute('data-page');
-      loadPageContent(`them/${page}`);
-    });
-  });
-
-  function loadPageContent(url) {
-    fetch(url)
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to load");
-        return res.text();
-      })
-      .then(html => {
-        mainDiv.innerHTML = html;
-      })
-      .catch(() => {
-        mainDiv.innerHTML = `<p style="color:red;">Unable to load the page content.</p>`;
-      });
-    // Show back button
-    document.getElementById("page-header").style.display = "flex";
-  }
-
+  // Back button resets to page list (not necessary now, but kept for consistency)
   backBtn.addEventListener("click", () => {
     generatePageList();
   });
 
   function generatePageList() {
-    mainDiv.innerHTML = "";
+    // No dynamic content to generate, just hide header
     document.getElementById("page-header").style.display = "none";
   }
 
